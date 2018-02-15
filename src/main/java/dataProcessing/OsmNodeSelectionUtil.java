@@ -1,5 +1,8 @@
 package dataProcessing;
 
+import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -8,6 +11,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 
 import de.topobyte.osm4j.core.access.OsmIterator;
 import de.topobyte.osm4j.core.model.iface.EntityContainer;
@@ -23,33 +28,166 @@ public class OsmNodeSelectionUtil
 			"Krakow",
 			"Warszawa",
 			"Katowice",
-			"Lodz"
+			"Łódź"
 			);
 	
 	public static void main(String[] args) throws IOException
 	{
-		Map<String, List<OsmNode>> map = new HashMap<>();
+		
+		String path = "/home/piotr/Downloads/poland-latest.osm.bz2";
+		Map<String, String> agglomerationsMap = InputFilesConvertionUtil.ImportAgglomerations();
+		agglomerations = new ArrayList<>(agglomerationsMap.keySet());
 		// Define a query to retrieve some data
-		String query = "file:///opt/poland-latest.osm";
-		// Open a stream1
-		InputStream input = new URL(query).openStream();
+//		String query = "file:///opt/poland-latest.osm";
 
-		// Create an iterator for XML data
-		OsmIterator iterator = new OsmXmlIterator(input, false);
-		for (String agglomeration : agglomerations) {
-			System.out.println("searching " + agglomeration + "\n*****************************\n");
-			List<OsmNode> nodes = filterCity(iterator, agglomeration);
-			System.out.println(Arrays.toString(nodes.toArray()));
-			map.put(agglomeration, nodes);
-			System.out.println("finished " + agglomeration + "\n*****************************\n");
-
+		try(BZip2CompressorInputStream input = new BZip2CompressorInputStream(new FileInputStream(path))){
+			
+			OsmIterator iterator = new OsmXmlIterator(input, false);
+			
+			startFiles();
+			createNodesSet(iterator);
+			endFiles();
+			
+			System.out.println("finished");
 		}
-		
-		
-		System.out.println("finished");
 		System.exit(0);
 	}
 
+
+	
+	private static void generateFiles(Map<String, List<OsmNode>> map) {
+		for(String city : agglomerations) {
+			List<OsmNode> nodes = map.get(city);
+			try {
+			    BufferedWriter writer = new BufferedWriter(new FileWriter("/home/piotr/Nodes/"+city+".osm"));
+			    writer.write(" <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + 
+			    		"<osm version=\"0.6\" generator=\"CGImap 0.0.2\">\n ");
+			    for(OsmNode node : nodes) {
+			    	writer.write(OsmNodeUtil.toString(node));			    	
+			    }
+			    writer.write("\n</osm>");
+					writer.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		}
+		
+	}
+	
+	public static void flushNodes(Map<String, List<OsmNode>> map) {
+		for(String city : agglomerations) {
+			List<OsmNode> nodes = map.get(city);
+			try ( FileWriter fw = new FileWriter("/home/piotr/Nodes/"+city+".osm",true)){
+				 for(OsmNode node : nodes) {
+				    	fw.write(OsmNodeUtil.toString(node));			    	
+				 }
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			nodes.clear();
+		}
+	}
+	
+	public static void startFiles() {
+		 //the true will append the new data
+			for(String city : agglomerations) {
+				try ( FileWriter fw = new FileWriter("/home/piotr/Nodes/"+city+".osm")){
+				    fw.write(" <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + 
+				    		"<osm version=\"0.6\" generator=\"CGImap 0.0.2\">\n ");
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+			}
+	}
+	
+	public static void endFiles() {
+		for(String city : agglomerations) {
+			try ( FileWriter fw = new FileWriter("/home/piotr/Nodes/"+city+".osm",true)){
+				 fw.write("\n</osm>");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
+
+
+
+	public static boolean checkNodesFunction(OsmNode node) {
+		int tags = node.getNumberOfTags();
+		for (int j = 0; j< tags; ++j) {
+			OsmTag tag = node.getTag(j);
+//			System.out.println(tag.getKey() + " = " + tag.getValue());
+			switch (tag.getValue()) {
+			case "transformer_tower":
+			case "transformer":
+			case "supermarket":
+			case "goverment":
+			case "civic":
+			case "townhall":
+			case "manufacture":
+			case "stadium":
+//				System.out.println(OsmNodeUtil.toString(node));
+				return true;
+			default:
+//				System.out.println(OsmNodeUtil.toString(node));
+				break;
+			}
+		}
+		return false;
+	}
+	public static String getNodeCity(OsmNode node) {
+		int tags = node.getNumberOfTags();
+		OsmTag tag;
+		for (int j = 0; j< tags; ++j) {
+			tag = node.getTag(j);
+			if (tag.getKey().equals("addr:city")) {
+				for (String agglomeration : agglomerations) {
+					if(tag.getValue().equals(agglomeration)) {
+						return agglomeration;
+					}
+				}
+				return null;
+			}
+		}
+		return null;
+	}
+	public static Map<String, List<OsmNode>> createNodesSet(OsmIterator iterator) {
+		Map<String,  List<OsmNode>> nodes = new HashMap<>();
+		for(String city : agglomerations) {
+			nodes.put(city, new ArrayList<>());
+		}
+		int stop = 0;
+		for (EntityContainer container : iterator) {
+			if(stop>250) {
+				flushNodes(nodes);
+				stop = 0;
+			}
+			if (container.getType() == EntityType.Node) {
+
+				OsmNode node = (OsmNode) container.getEntity();
+				if(checkNodesFunction(node)) {
+					String city = getNodeCity(node);
+					if(city != null) {
+						nodes.get(city).add(node);
+						stop++;
+						System.out.println(stop);
+					} else {
+//						iterator.remove();
+					}
+				} else {
+//					iterator.remove();
+				}
+			}
+		}
+		return nodes;
+		
+	}
+	
 	public static List<OsmNode> filterCity(OsmIterator iterator, String agglomeration) {
 		List<OsmNode> nodes = new ArrayList<>();;
 		int count = 0;
@@ -65,7 +203,7 @@ public class OsmNodeSelectionUtil
 				if(filterNodes(node, agglomeration) != null) {
 					nodes.add(node);
 					count++;
-				}
+				} 
 				if (100 < count) {
 					break;
 				}
@@ -100,17 +238,19 @@ e. inne, uzasadnione przez uczestników.
 					case "goverment":
 					case "civic":
 					case "school":
+						System.out.println(OsmNodeUtil.toString(node));
 						return node;
 					default:
+//						System.out.println(OsmNodeUtil.toString(node));
 						break;
-					
 					}
 				}
+				break;
 			}
 		}
 		return null;
 	}
-
+	
 
 
 }
