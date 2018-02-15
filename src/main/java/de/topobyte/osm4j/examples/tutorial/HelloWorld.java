@@ -47,7 +47,9 @@ public class HelloWorld
 	{
 		Map<String, List<OsmNode>> map = new HashMap<>();
 		// Define a query to retrieve some data
-		String query = "file:///opt/poland-latest.osm";
+//		String query = "file:///opt/poland-latest.osm"; 
+		String query = "file:///home/piotr/Desktop/Nodes/Wrocław.osm"; 
+
 		// Open a stream1
 		InputStream input = new URL(query).openStream();
 

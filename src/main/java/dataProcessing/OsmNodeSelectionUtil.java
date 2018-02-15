@@ -2,12 +2,10 @@ package dataProcessing;
 
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,55 +22,32 @@ import de.topobyte.osm4j.xml.dynsax.OsmXmlIterator;
 public class OsmNodeSelectionUtil
 {
 
-	private static List<String> agglomerations = Arrays.asList(
-			"Krakow",
-			"Warszawa",
-			"Katowice",
-			"Łódź"
-			);
-	
+	private static List<String> agglomerations ;
 	public static void main(String[] args) throws IOException
 	{
 		
+		runSelection();
+		System.exit(0);
+	}
+
+
+
+	public static void runSelection() throws IOException, FileNotFoundException {
 		String path = "/home/piotr/Downloads/poland-latest.osm.bz2";
-		Map<String, String> agglomerationsMap = InputFilesConvertionUtil.ImportAgglomerations();
-		agglomerations = new ArrayList<>(agglomerationsMap.keySet());
+//		Map<String, String> agglomerationsMap = InputFilesConvertionUtil.ImportAgglomerations();
+		agglomerations = new ArrayList<>(InputFilesConvertionUtil.ImportAgglomerations().keySet());
 		// Define a query to retrieve some data
 //		String query = "file:///opt/poland-latest.osm";
 
 		try(BZip2CompressorInputStream input = new BZip2CompressorInputStream(new FileInputStream(path))){
 			
 			OsmIterator iterator = new OsmXmlIterator(input, false);
-			
 			startFiles();
 			createNodesSet(iterator);
 			endFiles();
 			
 			System.out.println("finished");
 		}
-		System.exit(0);
-	}
-
-
-	
-	private static void generateFiles(Map<String, List<OsmNode>> map) {
-		for(String city : agglomerations) {
-			List<OsmNode> nodes = map.get(city);
-			try {
-			    BufferedWriter writer = new BufferedWriter(new FileWriter("/home/piotr/Nodes/"+city+".osm"));
-			    writer.write(" <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + 
-			    		"<osm version=\"0.6\" generator=\"CGImap 0.0.2\">\n ");
-			    for(OsmNode node : nodes) {
-			    	writer.write(OsmNodeUtil.toString(node));			    	
-			    }
-			    writer.write("\n</osm>");
-					writer.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-		}
-		
 	}
 	
 	public static void flushNodes(Map<String, List<OsmNode>> map) {
@@ -83,7 +58,6 @@ public class OsmNodeSelectionUtil
 				    	fw.write(OsmNodeUtil.toString(node));			    	
 				 }
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			nodes.clear();
@@ -97,7 +71,7 @@ public class OsmNodeSelectionUtil
 				    fw.write(" <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + 
 				    		"<osm version=\"0.6\" generator=\"CGImap 0.0.2\">\n ");
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
+						// 
 						e.printStackTrace();
 					}
 			}
@@ -108,7 +82,7 @@ public class OsmNodeSelectionUtil
 			try ( FileWriter fw = new FileWriter("/home/piotr/Nodes/"+city+".osm",true)){
 				 fw.write("\n</osm>");
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				// 
 				e.printStackTrace();
 			}
 		}
@@ -156,16 +130,22 @@ public class OsmNodeSelectionUtil
 		}
 		return null;
 	}
-	public static Map<String, List<OsmNode>> createNodesSet(OsmIterator iterator) {
+	public static void createNodesSet(OsmIterator iterator) {
 		Map<String,  List<OsmNode>> nodes = new HashMap<>();
 		for(String city : agglomerations) {
 			nodes.put(city, new ArrayList<>());
 		}
+		// TODO delete, only for mockup data generation;
+		int iter = 0;
 		int stop = 0;
 		for (EntityContainer container : iterator) {
 			if(stop>250) {
 				flushNodes(nodes);
 				stop = 0;
+				iter++;
+				if (iter >4) {
+					return;
+				}
 			}
 			if (container.getType() == EntityType.Node) {
 
@@ -184,8 +164,8 @@ public class OsmNodeSelectionUtil
 				}
 			}
 		}
-		return nodes;
-		
+		// flush the rest of nodes
+		flushNodes(nodes);
 	}
 	
 	public static List<OsmNode> filterCity(OsmIterator iterator, String agglomeration) {
@@ -249,6 +229,25 @@ e. inne, uzasadnione przez uczestników.
 			}
 		}
 		return null;
+	}
+	private static void generateFiles(Map<String, List<OsmNode>> map) {
+		for(String city : agglomerations) {
+			List<OsmNode> nodes = map.get(city);
+			try {
+			    BufferedWriter writer = new BufferedWriter(new FileWriter("/home/piotr/Nodes/"+city+".osm"));
+			    writer.write(" <?xml version='1.0' encoding='UTF-8'?>\n" + 
+			    		"<osm version=\"0.6\" generator=\"osmconvert 0.8.5\" timestamp=\"2018-02-11T21:44:02Z\">\n" + 
+			    		"	<bounds minlat=\"48.986421\" minlon=\"13.990216\" maxlat=\"55.228256\" maxlon=\"24.161023\"/> ");
+			    for(OsmNode node : nodes) {
+			    	writer.write(OsmNodeUtil.toString(node));			    	
+			    }
+			    writer.write("\n</osm>");
+					writer.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		}
+		
 	}
 	
 

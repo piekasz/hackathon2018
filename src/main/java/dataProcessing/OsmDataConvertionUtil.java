@@ -1,9 +1,8 @@
 package dataProcessing;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
+
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 
 import de.topobyte.osm4j.core.access.OsmIterator;
 import de.topobyte.osm4j.core.model.iface.EntityContainer;
@@ -11,7 +10,6 @@ import de.topobyte.osm4j.core.model.iface.EntityType;
 import de.topobyte.osm4j.core.model.iface.OsmNode;
 import de.topobyte.osm4j.core.model.iface.OsmTag;
 import de.topobyte.osm4j.xml.dynsax.OsmXmlIterator;
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 
 public class OsmDataConvertionUtil
 {
