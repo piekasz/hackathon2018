@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: com.slimjars.trove4j:trove4j-hash:1.0.1">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.slimjars.trove4j/trove4j-hash/1.0.1/4e72a576df47229e9ec7089d235276374725a058/trove4j-hash-1.0.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.slimjars.trove4j/trove4j-hash/1.0.1/415a2eb13b81ec37b32756981c968c3932a4a44c/trove4j-hash-1.0.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
