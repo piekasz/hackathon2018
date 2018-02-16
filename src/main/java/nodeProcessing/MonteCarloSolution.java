@@ -24,6 +24,8 @@ public class MonteCarloSolution {
 		for (int i=0; i<nodesToGet; ++i) {
 			int index = random.nextInt(size);
 			result.add(nodes.get(index));
+			nodes.remove(index);
+			size--;
 		}
 		
 		return result;

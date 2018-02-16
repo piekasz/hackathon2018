@@ -71,16 +71,44 @@ public class SolutionUtil {
 			where	φ is latitude, λ is longitude, R is earth’s radius (mean radius = 6,371km);
 	 */
 	public static BigDecimal countDistance(OsmNode node1, OsmNode node2) {
-		
-		double fi1 = Math.toRadians(node1.getLatitude());
-		double fi2 = Math.toRadians(node2.getLatitude());
-		double deltaFi =  Math.toRadians((node1.getLatitude() - node2.getLatitude()));
-		double daltaTeta = Math.toRadians((node1.getLongitude() - node2.getLongitude()));
-		
-		double a = Math.sin(deltaFi/2) * Math.sin(deltaFi/2) +
-		        Math.cos(fi1) * Math.cos(fi2) *
-		        Math.sin(daltaTeta) * Math.sin(daltaTeta);
-		
-		return  new BigDecimal((R *2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))));
+		return new BigDecimal(distance(node1.getLatitude(), node1.getLongitude(),node2.getLatitude(), node2.getLongitude() ));
+//		BigDecimal fi1 = new BigDecimal(Math.toRadians(node1.getLatitude()));
+//		BigDecimal fi2 = new BigDecimal(Math.toRadians(node2.getLatitude()));
+//		BigDecimal deltaFi =  new BigDecimal(Math.toRadians((node1.getLatitude() - node2.getLatitude())));
+//		BigDecimal daltaTeta =new BigDecimal(Math.toRadians((node1.getLongitude() - node2.getLongitude())));
+//		
+//		BigDecimal a =  new BigDecimal(Math.sin(deltaFi.doubleValue()/2.0) * Math.sin(deltaFi.doubleValue()/2.0) +
+//		        Math.cos(fi1.doubleValue()) * Math.cos(fi2.doubleValue()) *
+//		        Math.sin(daltaTeta.doubleValue()) * Math.sin(daltaTeta.doubleValue()));
+//		
+//		return  new BigDecimal((R *2 * Math.atan2(Math.sqrt(a.doubleValue()), Math.sqrt(1-a.doubleValue()))));
 	}
+	
+    private static  double distance(double lat1, double lon1, double lat2, double lon2) {
+        double theta = lon1 - lon2;
+        double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+        dist = Math.acos(dist);
+        dist = rad2deg(dist);
+        dist = dist * 60 * 1.1515;
+//        if (unit == 'K') {
+//          dist = dist * 1.609344;
+//        } else if (unit == 'N') {
+//          dist = dist * 0.8684;
+//          }
+        return (dist);
+      }
+
+      /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+      /*::  This function converts decimal degrees to radians             :*/
+      /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+      private static double deg2rad(double deg) {
+        return (deg * Math.PI / 180.0);
+      }
+
+      /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+      /*::  This function converts radians to decimal degrees             :*/
+      /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+      private static double rad2deg(double rad) {
+        return (rad * 180.0 / Math.PI);
+      }
 }
