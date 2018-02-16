@@ -2,8 +2,10 @@ package dataProcessing;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,14 +22,20 @@ public class OsmNodeUtil {
 	 * convets node to string that represents node in osm xml format
 	 * @param node
 	 * @return
+	 * @throws UnsupportedEncodingException 
 	 */
-	public static String toString(OsmNode node){
+	public static String toString(OsmNode node) throws UnsupportedEncodingException{
 		String result;
 		result =  String.format( " <node id=\"%s\" lat=\"%s\" lon=\"%s\" visible=\"true\">\n",
 				node.getId(), node.getLatitude(), node.getLongitude());
 		for (int i = 0; i < node.getNumberOfTags(); i++) {
 			OsmTag tag = node.getTag(i);
-			result = result + String.format("  <tag k=\"%s\" v=\"%s\"/>\n", tag.getKey(), tag.getValue());
+			if (tag.getValue().contains("\"")) {
+				continue;
+			}
+			result = result + String.format("  <tag k=\"%s\" v=\"%s\"/>\n", tag.getKey(),
+//					URLEncoder.encode(tag.getValue(), "UTF-8"));
+					tag.getValue(), "UTF-8");
 		}
 
 		result = result + " </node> ";

@@ -5,8 +5,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -53,9 +56,10 @@ public class OsmNodeSelectionUtil
 	public static void flushNodes(Map<String, List<OsmNode>> map) {
 		for(String city : agglomerations) {
 			List<OsmNode> nodes = map.get(city);
+			Iterator<OsmNode> nodesIter = nodes.iterator();
 			try ( FileWriter fw = new FileWriter("/home/piotr/Nodes/"+city+".osm",true)){
-				 for(OsmNode node : nodes) {
-				    	fw.write(OsmNodeUtil.toString(node));			    	
+				 while(nodesIter.hasNext()) {
+				    	fw.write(OsmNodeUtil.toString(nodesIter.next()));			    	
 				 }
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -68,9 +72,9 @@ public class OsmNodeSelectionUtil
 		 //the true will append the new data
 			for(String city : agglomerations) {
 				try ( FileWriter fw = new FileWriter("/home/piotr/Nodes/"+city+".osm")){
-					  fw.write(" <?xml version='1.0' encoding='UTF-8'?>\n" + 
+					  fw.write("<?xml version='1.0' encoding='UTF-8'?>\n" + 
 					    		"<osm version=\"0.6\" generator=\"osmconvert 0.8.5\" timestamp=\"2018-02-11T21:44:02Z\">\n" + 
-					    		"	<bounds minlat=\"48.986421\" minlon=\"13.990216\" maxlat=\"55.228256\" maxlon=\"24.161023\"/> ");
+					    		"	<bounds minlat=\"48.986421\" minlon=\"13.990216\" maxlat=\"55.228256\" maxlon=\"24.161023\"/>\n");
 					   
 					} catch (IOException e) {
 						// 
@@ -134,24 +138,25 @@ public class OsmNodeSelectionUtil
 	}
 	public static void createNodesSet(OsmIterator iterator) {
 		Map<String,  List<OsmNode>> nodes = new HashMap<>();
-		for(String city : agglomerations) {
-			nodes.put(city, new ArrayList<>());
-		}
 		// TODO delete, only for mockup data generation;
 		int iter = 0;
-		int stop = 0;
-		int limit = 250;
+		int stop = 1;
+		int limit = 40;
+		for(String city : agglomerations) {
+			nodes.put(city, new ArrayList<>(limit));
+		}
 		for (EntityContainer container : iterator) {
 			if(stop>limit) {
 				flushNodes(nodes);
-				stop = 0;
-				System.out.println(iter);
-				iter++;
-				if (iter == 4) {
-					limit = 12;
-				} else  if(limit == 5) {
-					System.out.println(container);
-				}
+				return;
+//				stop = 0;
+//				System.out.println(iter);
+//				iter++;
+//				if (iter == 3) {
+//					limit = 12;
+//				} else  if(limit == 4) {
+//					System.out.println(container);
+//				}
 			}
 			if (container.getType() == EntityType.Node) {
 
@@ -174,87 +179,87 @@ public class OsmNodeSelectionUtil
 		flushNodes(nodes);
 	}
 	
-	public static List<OsmNode> filterCity(OsmIterator iterator, String agglomeration) {
-		List<OsmNode> nodes = new ArrayList<>();;
-		int count = 0;
-		// Iterate all elements
-		
-		for (EntityContainer container : iterator) {
-
-			// Check if the element is a node
-			if (container.getType() == EntityType.Node) {
-
-				// Cast the entity to OsmNode
-				OsmNode node = (OsmNode) container.getEntity();
-				if(filterNodes(node, agglomeration) != null) {
-					nodes.add(node);
-					count++;
-				} 
-				if (100 < count) {
-					break;
-				}
-			}
-
-		}
-		return nodes;
-	}
-	
-	/*
-stacje transformatorowe: (tag building=transformer_tower),
-b. centra handlowe (tag shop=supermarket),
-c. jednostki samorządowe (tag office=goverment i/lub building=civic),
-d. inne, podane przez organizatorów w postaci listy adresów,
-e. inne, uzasadnione przez uczestników.
-	 */
-	public static OsmNode filterNodes(OsmNode node, String agglomeration) {
-		int tags = node.getNumberOfTags();
-		for (int i = 0; i< tags; ++i) {
-			OsmTag tag = node.getTag(i);
-			if (tag.getKey().equals("addr:city") && tag.getValue().equals(agglomeration)){
-//				System.out.println("\n ********* city " + aglomeracja + " **********");
-//				System.out.println("id: " + node.getId());
-//				System.out.println("latitude: " + node.getLatitude());
-//				System.out.println("longitude: " + node.getLongitude());
-				for (int j = 0; j< tags; ++j) {
-					tag = node.getTag(j);
-//					System.out.println(tag.getKey() + " = " + tag.getValue());
-					switch (tag.getValue()) {
-					case "transformer_tower":
-					case "supermarket":
-					case "goverment":
-					case "civic":
-					case "school":
-						System.out.println(OsmNodeUtil.toString(node));
-						return node;
-					default:
+//	public static List<OsmNode> filterCity(OsmIterator iterator, String agglomeration) throws UnsupportedEncodingException {
+//		List<OsmNode> nodes = new ArrayList<>();;
+//		int count = 0;
+//		// Iterate all elements
+//		
+//		for (EntityContainer container : iterator) {
+//
+//			// Check if the element is a node
+//			if (container.getType() == EntityType.Node) {
+//
+//				// Cast the entity to OsmNode
+//				OsmNode node = (OsmNode) container.getEntity();
+//				if(filterNodes(node, agglomeration) != null) {
+//					nodes.add(node);
+//					count++;
+//				} 
+//				if (100 < count) {
+//					break;
+//				}
+//			}
+//
+//		}
+//		return nodes;
+//	}
+//	
+//	/*
+//stacje transformatorowe: (tag building=transformer_tower),
+//b. centra handlowe (tag shop=supermarket),
+//c. jednostki samorządowe (tag office=goverment i/lub building=civic),
+//d. inne, podane przez organizatorów w postaci listy adresów,
+//e. inne, uzasadnione przez uczestników.
+//	 */
+//	public static OsmNode filterNodes(OsmNode node, String agglomeration) throws UnsupportedEncodingException {
+//		int tags = node.getNumberOfTags();
+//		for (int i = 0; i< tags; ++i) {
+//			OsmTag tag = node.getTag(i);
+//			if (tag.getKey().equals("addr:city") && tag.getValue().equals(agglomeration)){
+////				System.out.println("\n ********* city " + aglomeracja + " **********");
+////				System.out.println("id: " + node.getId());
+////				System.out.println("latitude: " + node.getLatitude());
+////				System.out.println("longitude: " + node.getLongitude());
+//				for (int j = 0; j< tags; ++j) {
+//					tag = node.getTag(j);
+////					System.out.println(tag.getKey() + " = " + tag.getValue());
+//					switch (tag.getValue()) {
+//					case "transformer_tower":
+//					case "supermarket":
+//					case "goverment":
+//					case "civic":
+//					case "school":
 //						System.out.println(OsmNodeUtil.toString(node));
-						break;
-					}
-				}
-				break;
-			}
-		}
-		return null;
-	}
-	private static void generateFiles(Map<String, List<OsmNode>> map) {
-		for(String city : agglomerations) {
-			List<OsmNode> nodes = map.get(city);
-			try {
-			    BufferedWriter writer = new BufferedWriter(new FileWriter("/home/piotr/Nodes/"+city+".osm"));
-			    writer.write(" <?xml version='1.0' encoding='UTF-8'?>\n" + 
-			    		"<osm version=\"0.6\" generator=\"osmconvert 0.8.5\" timestamp=\"2018-02-11T21:44:02Z\">\n" + 
-			    		"	<bounds minlat=\"48.986421\" minlon=\"13.990216\" maxlat=\"55.228256\" maxlon=\"24.161023\"/> ");
-			    for(OsmNode node : nodes) {
-			    	writer.write(OsmNodeUtil.toString(node));			    	
-			    }
-			    writer.write("\n</osm>");
-					writer.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-		}
-		
-	}
+//						return node;
+//					default:
+////						System.out.println(OsmNodeUtil.toString(node));
+//						break;
+//					}
+//				}
+//				break;
+//			}
+//		}
+//		return null;
+//	}
+//	private static void generateFiles(Map<String, List<OsmNode>> map) {
+//		for(String city : agglomerations) {
+//			List<OsmNode> nodes = map.get(city);
+//			try {
+//			    BufferedWriter writer = new BufferedWriter(new FileWriter("/home/piotr/Nodes/"+city+".osm"));
+//			    writer.write(" <?xml version='1.0' encoding='UTF-8'?>\n" + 
+//			    		"<osm version=\"0.6\" generator=\"osmconvert 0.8.5\" timestamp=\"2018-02-11T21:44:02Z\">\n" + 
+//			    		"	<bounds minlat=\"48.986421\" minlon=\"13.990216\" maxlat=\"55.228256\" maxlon=\"24.161023\"/> ");
+//			    for(OsmNode node : nodes) {
+//			    	writer.write(OsmNodeUtil.toString(node));			    	
+//			    }
+//			    writer.write("\n</osm>");
+//					writer.close();
+//				} catch (IOException e) {
+//					e.printStackTrace();
+//				}
+//		}
+//		
+//	}
 	
 
 

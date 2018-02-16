@@ -11,7 +11,7 @@ public class RandFactorial {
 
     public static BigInteger factorial(BigInteger num) {
         BigInteger fact = BigInteger.valueOf(1);
-        for (int i = 1; i <=(int) num; i++)
+        for (int i = 1; i <= num.intValue(); i++)
             fact = fact.multiply(BigInteger.valueOf(i));
         return fact;
     }

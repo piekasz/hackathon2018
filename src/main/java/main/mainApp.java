@@ -1,9 +1,11 @@
 package main;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import dataProcessing.OsmNodeUtil;
 import de.topobyte.osm4j.core.model.iface.OsmNode;
+import nodeProcessing.SolutionUtil;
 
 public class mainApp {
 	
@@ -23,12 +25,16 @@ public class mainApp {
 	 *   go for next itaration
 	 */
 	public static void main(String[] args) {
-		String path = "/home/piotr/Desktop/Nodes/Kielce.osm";
+
+		String path = "/home/piotr/Nodes/Lublin.osm";
 		List<OsmNode> nodes = OsmNodeUtil.nodesFromFile(path);
-		for (OsmNode osmNode : nodes) {
-			System.out.println(OsmNodeUtil.toAddress(osmNode));
-		}
-		System.out.println("Koniec");
+		BigDecimal result = SolutionUtil.countBestArrangementInCity(nodes);
+		System.out.println(result.toString());
+		
+		String path2 = "/home/piotr/Nodes/Częstochowa.osm";
+		List<OsmNode> nodes2 = OsmNodeUtil.nodesFromFile(path2);
+		BigDecimal result2 = SolutionUtil.countSmallestDistance(nodes, nodes2);
+		System.out.println(result2.toString());
 	}
 
 }
