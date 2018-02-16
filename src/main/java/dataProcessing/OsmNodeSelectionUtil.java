@@ -142,6 +142,7 @@ public class OsmNodeSelectionUtil
 			if(stop>250) {
 				flushNodes(nodes);
 				stop = 0;
+				System.out.println(iter);
 				iter++;
 				if (iter >4) {
 					return;
@@ -155,7 +156,7 @@ public class OsmNodeSelectionUtil
 					if(city != null) {
 						nodes.get(city).add(node);
 						stop++;
-						System.out.println(stop);
+						System.out.print(stop);
 					} else {
 //						iterator.remove();
 					}

@@ -16,6 +16,11 @@ import de.topobyte.osm4j.xml.dynsax.OsmXmlIterator;
 
 public class OsmNodeUtil {
 
+	/**
+	 * convets node to string that represents node in osm xml format
+	 * @param node
+	 * @return
+	 */
 	public static String toString(OsmNode node){
 		String result;
 		result =  String.format( " <node id=\"%s\" lat=\"%s\" lon=\"%s\" visible=\"true\">\n",
@@ -27,6 +32,35 @@ public class OsmNodeUtil {
 
 		result = result + " </node> ";
 		return result;
+	}
+	
+	/**
+	 * converts node to string that represents node address example Warsaw ul.Marszałkowska 1;
+	 */
+	public static String toAddress(OsmNode node) {
+		OsmTag tag;
+		String city = "";
+		String street = "";
+		String houseNumber = "";
+		for (int i = 0; i < node.getNumberOfTags(); i++) {
+			tag = node.getTag(i);
+			switch(tag.getKey()) {
+			case "addr:city":
+				city = tag.getValue();
+				break;
+			case "addr:street":
+				street = tag.getValue();
+				break;
+			case "addr:housenumber":
+				houseNumber = tag.getValue();
+				break;
+			default:
+				break;
+			}
+		}
+		
+		return String.format(" %s, %s %s " ,city, street, houseNumber);
+		
 	}
 	
 	/**

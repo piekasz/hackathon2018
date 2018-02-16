@@ -26,8 +26,9 @@ public class mainApp {
 		String path = "/home/piotr/Desktop/Nodes/Kielce.osm";
 		List<OsmNode> nodes = OsmNodeUtil.nodesFromFile(path);
 		for (OsmNode osmNode : nodes) {
-			System.out.println(OsmNodeUtil.toString(osmNode));
+			System.out.println(OsmNodeUtil.toAddress(osmNode));
 		}
+		System.out.println("Koniec");
 	}
 
 }
