@@ -68,8 +68,10 @@ public class OsmNodeSelectionUtil
 		 //the true will append the new data
 			for(String city : agglomerations) {
 				try ( FileWriter fw = new FileWriter("/home/piotr/Nodes/"+city+".osm")){
-				    fw.write(" <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + 
-				    		"<osm version=\"0.6\" generator=\"CGImap 0.0.2\">\n ");
+					  fw.write(" <?xml version='1.0' encoding='UTF-8'?>\n" + 
+					    		"<osm version=\"0.6\" generator=\"osmconvert 0.8.5\" timestamp=\"2018-02-11T21:44:02Z\">\n" + 
+					    		"	<bounds minlat=\"48.986421\" minlon=\"13.990216\" maxlat=\"55.228256\" maxlon=\"24.161023\"/> ");
+					   
 					} catch (IOException e) {
 						// 
 						e.printStackTrace();
@@ -138,14 +140,17 @@ public class OsmNodeSelectionUtil
 		// TODO delete, only for mockup data generation;
 		int iter = 0;
 		int stop = 0;
+		int limit = 250;
 		for (EntityContainer container : iterator) {
-			if(stop>250) {
+			if(stop>limit) {
 				flushNodes(nodes);
 				stop = 0;
 				System.out.println(iter);
 				iter++;
-				if (iter >4) {
-					return;
+				if (iter == 4) {
+					limit = 12;
+				} else  if(limit == 5) {
+					System.out.println(container);
 				}
 			}
 			if (container.getType() == EntityType.Node) {
